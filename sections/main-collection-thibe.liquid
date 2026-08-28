@@ -4,13 +4,62 @@
 <script src="{{ 'facets.js' | asset_url }}" defer="defer"></script>
 
 <style>
-  .thibe-plp{background:#fff;color:#141014}.thibe-plp__wrap{max-width:1400px;margin:0 auto;padding:0 32px}
-  .thibe-plp__head{padding:28px 0 22px}.thibe-plp__crumb{font-size:12px;color:#4a4448;margin-bottom:10px}.thibe-plp__title{margin:0;font-size:30px;font-weight:600;line-height:1.15}
-  .thibe-subcats{display:flex;gap:16px;overflow-x:auto;padding:0 0 32px;scrollbar-width:none}.thibe-subcats::-webkit-scrollbar{display:none}.thibe-subcat{flex:0 0 140px;color:#4a4448;text-decoration:none}.thibe-subcat__media{aspect-ratio:3/4;overflow:hidden;border:2px solid transparent;background:#eee}.thibe-subcat__media img{width:100%;height:100%;object-fit:cover}.thibe-subcat__name{text-align:center;font-size:12.5px;margin-top:10px}.thibe-subcat:hover .thibe-subcat__media,.thibe-subcat.is-active .thibe-subcat__media{border-color:#141014}.thibe-subcat:hover .thibe-subcat__name,.thibe-subcat.is-active .thibe-subcat__name{color:#141014;font-weight:600}
-  .thibe-toolbar{border-top:1px solid #e3e0dd;border-bottom:1px solid #e3e0dd;padding:17px 0;margin-bottom:32px}.thibe-toolbar__inner{display:flex;align-items:center;justify-content:space-between;gap:20px;font-size:13.5px}.thibe-toolbar__count{white-space:nowrap}.thibe-toolbar .facets-container{padding:0!important}.thibe-toolbar .facets__form{margin:0!important;gap:20px}.thibe-toolbar .facet-filters{padding:0!important}.thibe-toolbar .facet-filters__label,.thibe-toolbar .product-count{display:none!important}
-  .thibe-plp .collection{padding:0!important}.thibe-plp #product-grid{column-gap:24px;row-gap:34px}.thibe-plp .card-wrapper{height:100%}.thibe-plp .card{background:#fff;border:0;box-shadow:none}.thibe-plp .card__inner{--ratio-percent:133.333%!important;border-radius:0;overflow:hidden}.thibe-plp .card__media .media img{object-fit:cover}.thibe-plp .card__content{padding:0}.thibe-plp .card__information{padding:14px 0 0}.thibe-plp .card__heading{font-size:14px;font-weight:500;line-height:1.35;margin-bottom:4px}.thibe-plp .price{font-size:14px;font-weight:600}.thibe-plp .badge{font-size:10px;letter-spacing:.06em;text-transform:uppercase;border-radius:2px;background:#fff;color:#141014;border:0;padding:5px 9px}.thibe-plp .card__inner:after{content:'♡';position:absolute;right:12px;top:10px;z-index:3;width:24px;height:24px;display:grid;place-items:center;font-size:23px;color:#141014;background:rgba(255,255,255,.72);border-radius:50%;pointer-events:none}
-  .thibe-plp__empty{text-align:center;padding:60px 0}.thibe-plp__pagination{padding:36px 0 70px}
-  @media(max-width:749px){.thibe-plp__wrap{padding:0 18px}.thibe-plp__head{padding-top:20px}.thibe-plp__title{font-size:26px}.thibe-subcat{flex-basis:112px}.thibe-toolbar__inner{align-items:flex-start;flex-direction:column}.thibe-plp #product-grid{column-gap:12px;row-gap:28px}}
+  .thibe-plp{background:#fff;color:#141014}
+  .thibe-plp__wrap{max-width:1400px;margin:0 auto;padding:0 24px}
+  .thibe-plp__head{padding:24px 0 18px}
+  .thibe-plp__crumb{font-size:12px;color:#5b565a;margin-bottom:8px}
+  .thibe-plp__crumb a{color:#5b565a}
+  .thibe-plp__title{margin:0;font-size:31px;font-weight:600;line-height:1.1;letter-spacing:-.01em}
+  .thibe-subcats{display:flex;gap:14px;overflow-x:auto;padding:0 0 24px;scrollbar-width:none}
+  .thibe-subcats::-webkit-scrollbar{display:none}
+  .thibe-subcat{flex:0 0 132px;color:#4a4448;text-decoration:none}
+  .thibe-subcat__media{aspect-ratio:3/4;overflow:hidden;border:1px solid transparent;background:#f1efed}
+  .thibe-subcat__media img{width:100%;height:100%;object-fit:cover}
+  .thibe-subcat__name{text-align:center;font-size:12px;margin-top:8px}
+  .thibe-subcat:hover .thibe-subcat__media,.thibe-subcat.is-active .thibe-subcat__media{border-color:#141014}
+  .thibe-subcat:hover .thibe-subcat__name,.thibe-subcat.is-active .thibe-subcat__name{color:#141014;font-weight:600}
+
+  .thibe-toolbar{border-top:1px solid #e5e2df;border-bottom:1px solid #e5e2df;padding:12px 0;margin-bottom:20px}
+  .thibe-toolbar__inner{display:flex;align-items:center;justify-content:space-between;gap:16px;font-size:13px;min-height:46px}
+  .thibe-toolbar__count{white-space:nowrap;color:#4a4448}
+  .thibe-toolbar .facets-container{padding:0!important}
+  .thibe-toolbar .facets__form{margin:0!important;gap:14px!important;align-items:center!important}
+  .thibe-toolbar .facet-filters{padding:0!important}
+  .thibe-toolbar .facet-filters__label,.thibe-toolbar .product-count{display:none!important}
+  .thibe-toolbar .facets__heading{margin-right:2px!important}
+  .thibe-toolbar summary,.thibe-toolbar select{font-size:13px!important}
+
+  .thibe-plp .collection{padding:0!important}
+  .thibe-plp #product-grid{column-gap:18px;row-gap:28px;margin-top:0}
+  .thibe-plp .grid__item{min-width:0}
+  .thibe-plp .card-wrapper{height:100%}
+  .thibe-plp .card{background:#fff;border:0;box-shadow:none}
+  .thibe-plp .card__inner{--ratio-percent:133.333%!important;border-radius:0;overflow:hidden;background:#f7f6f4}
+  .thibe-plp .card__media .media img{object-fit:cover}
+  .thibe-plp .card__content{padding:0}
+  .thibe-plp .card__information{padding:12px 0 0}
+  .thibe-plp .card__heading{font-size:14px;font-weight:500;line-height:1.3;margin-bottom:5px;letter-spacing:.01em}
+  .thibe-plp .price{font-size:14px;font-weight:700}
+  .thibe-plp .badge{font-size:10px;letter-spacing:.06em;text-transform:uppercase;border-radius:2px;background:#fff;color:#141014;border:0;padding:5px 9px}
+  .thibe-plp .card__inner:after{content:'♡';position:absolute;right:12px;top:10px;z-index:3;width:26px;height:26px;display:grid;place-items:center;font-size:22px;color:#141014;background:rgba(255,255,255,.86);border-radius:50%;pointer-events:none}
+  .thibe-plp__empty{text-align:center;padding:52px 0}
+  .thibe-plp__pagination{padding:32px 0 56px}
+
+  @media(min-width:990px){
+    .thibe-plp #product-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+  }
+
+  @media(max-width:749px){
+    .thibe-plp__wrap{padding:0 16px}
+    .thibe-plp__head{padding:18px 0 14px}
+    .thibe-plp__title{font-size:26px}
+    .thibe-subcat{flex-basis:108px}
+    .thibe-toolbar{padding:10px 0;margin-bottom:16px}
+    .thibe-toolbar__inner{align-items:flex-start;flex-direction:column;gap:8px;min-height:0}
+    .thibe-plp #product-grid{column-gap:10px;row-gap:22px}
+    .thibe-plp .card__information{padding-top:9px}
+    .thibe-plp .card__heading,.thibe-plp .price{font-size:13px}
+  }
 </style>
 
 <section class="thibe-plp">
