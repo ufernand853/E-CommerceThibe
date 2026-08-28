@@ -20,21 +20,26 @@
   .thibe-subcat:hover .thibe-subcat__name,.thibe-subcat.is-active .thibe-subcat__name{color:#141014;font-weight:600}
 
   .thibe-toolbar{border-top:1px solid #e5e2df;border-bottom:1px solid #e5e2df;padding:12px 0;margin-bottom:20px}
-  .thibe-toolbar__inner{display:flex;align-items:center;justify-content:space-between;gap:16px;font-size:13px;min-height:46px}
-  .thibe-toolbar__count{white-space:nowrap;color:#4a4448}
-  .thibe-toolbar .facets-container{padding:0!important}
-  .thibe-toolbar .facets__form{margin:0!important;gap:14px!important;align-items:center!important;display:flex!important}
-  .thibe-toolbar .facet-filters{padding:0!important;margin:0!important;display:flex!important;align-items:center!important}
+  .thibe-toolbar__inner{display:flex;align-items:center;justify-content:space-between;gap:24px;font-size:13px;min-height:44px}
+  .thibe-toolbar__count{white-space:nowrap;color:#4a4448;flex:0 0 auto}
+  .thibe-toolbar #main-collection-filters{margin-left:auto}
+  .thibe-toolbar .facets-container{display:block!important;padding:0!important}
+  .thibe-toolbar facet-filters-form.facets{display:block!important}
+  .thibe-toolbar .facets__form{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:28px!important;margin:0!important;white-space:nowrap}
+  .thibe-toolbar .facets__wrapper{display:flex!important;align-items:center!important;flex-wrap:nowrap!important;gap:22px!important;margin:0!important}
+  .thibe-toolbar .facets__heading{margin:0!important;padding:0!important;line-height:1!important}
+  .thibe-toolbar .facets__disclosure{margin:0!important}
+  .thibe-toolbar .facets__summary{margin:0!important;padding:0!important;min-height:0!important;height:auto!important;line-height:1!important}
+  .thibe-toolbar .facets__summary>div{display:flex!important;align-items:center!important;gap:8px!important}
+  .thibe-toolbar .facets__summary span{line-height:1!important}
+  .thibe-toolbar .facet-filters{display:flex!important;align-items:center!important;margin:0!important;padding:0!important;grid-column:auto!important;grid-row:auto!important}
+  .thibe-toolbar .facet-filters__field{display:flex!important;align-items:center!important;justify-content:flex-start!important}
   .thibe-toolbar .facet-filters__label,.thibe-toolbar .product-count{display:none!important}
-  .thibe-toolbar .facets__heading{margin:0 2px 0 0!important;line-height:34px!important}
-  .thibe-toolbar .facets__disclosure{margin:0!important;display:flex!important;align-items:center!important}
-  .thibe-toolbar .facets__summary{margin:0!important;min-height:34px!important;height:34px!important;padding-top:0!important;padding-bottom:0!important;display:flex!important;align-items:center!important;line-height:34px!important}
-  .thibe-toolbar .facets__summary>span{display:flex!important;align-items:center!important;line-height:34px!important}
-  .thibe-toolbar .facet-filters__field{display:flex!important;align-items:center!important;height:34px!important}
-  .thibe-toolbar .facet-filters__sort{height:34px!important;min-height:34px!important;line-height:34px!important;padding-top:0!important;padding-bottom:0!important}
-  .thibe-toolbar .select,.thibe-toolbar .select__select{height:34px!important;min-height:34px!important;display:flex!important;align-items:center!important}
-  .thibe-toolbar summary,.thibe-toolbar select{font-size:13px!important;line-height:34px!important}
-  .thibe-toolbar .svg-wrapper,.thibe-toolbar svg{align-self:center!important}
+  .thibe-toolbar .facet-filters__sort{margin:0!important;padding:0 22px 0 0!important;height:auto!important;min-height:0!important;line-height:1!important}
+  .thibe-toolbar .facet-filters__field .select{display:flex!important;align-items:center!important;width:auto!important}
+  .thibe-toolbar .facet-filters__field .select .svg-wrapper{right:0!important;top:50%!important;transform:translateY(-50%)!important}
+  .thibe-toolbar .active-facets-desktop{display:none!important}
+  .thibe-toolbar summary,.thibe-toolbar select{font-size:13px!important}
 
   .thibe-plp .collection{padding:0!important}
   .thibe-plp #product-grid{column-gap:18px;row-gap:28px;margin-top:0}
@@ -56,13 +61,18 @@
     .thibe-plp #product-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}
   }
 
+  @media(max-width:989px){
+    .thibe-toolbar__inner{align-items:flex-start;flex-direction:column;gap:10px;min-height:0}
+    .thibe-toolbar #main-collection-filters{margin-left:0;width:100%;overflow-x:auto}
+    .thibe-toolbar .facets__form{justify-content:flex-start!important;min-width:max-content}
+  }
+
   @media(max-width:749px){
     .thibe-plp__wrap{padding:0 16px}
     .thibe-plp__head{padding:18px 0 14px}
     .thibe-plp__title{font-size:26px}
     .thibe-subcat{flex-basis:108px}
     .thibe-toolbar{padding:10px 0;margin-bottom:16px}
-    .thibe-toolbar__inner{align-items:flex-start;flex-direction:column;gap:8px;min-height:0}
     .thibe-plp #product-grid{column-gap:10px;row-gap:22px}
     .thibe-plp .card__information{padding-top:9px}
     .thibe-plp .card__heading,.thibe-plp .price{font-size:13px}
