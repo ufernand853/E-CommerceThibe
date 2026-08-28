@@ -1,7 +1,7 @@
 {% comment %}
   THIBE drawer navigation.
-  Top-level categories behave as a single-selection group:
-  opening one category automatically closes the previous one.
+  Top-level categories behave as a single-selection group and are synchronized
+  with the horizontal navigation.
 {% endcomment %}
 
 <header-drawer data-breakpoint="{% if section.settings.menu_type_desktop == 'drawer' %}desktop{% else %}tablet{% endif %}">
@@ -31,6 +31,7 @@
                       <summary
                         id="HeaderDrawer-{{ link.handle }}"
                         class="menu-drawer__menu-item list-menu__item link link--text focus-inset"
+                        data-thibe-menu-key="{{ link.handle }}"
                       >
                         {{ link.title | escape }}
                         <span class="svg-wrapper">
@@ -120,6 +121,7 @@
                       id="HeaderDrawer-{{ link.handle }}"
                       href="{{ link.url }}"
                       class="menu-drawer__menu-item list-menu__item link link--text focus-inset"
+                      data-thibe-menu-key="{{ link.handle }}"
                     >
                       {{ link.title | escape }}
                     </a>
@@ -133,3 +135,74 @@
     </div>
   </details>
 </header-drawer>
+
+<script>
+(() => {
+  const initThibeMenuState = () => {
+    const drawer = document.querySelector('#menu-drawer');
+    if (!drawer) return;
+
+    const drawerTabs = [...drawer.querySelectorAll('.menu-drawer__navigation > .menu-drawer__menu > li > a[data-thibe-menu-key], .menu-drawer__navigation > .menu-drawer__menu > li > details > summary[data-thibe-menu-key]')];
+    const horizontal = [...document.querySelectorAll('.thibe-subnav__link')];
+    if (!drawerTabs.length || !horizontal.length) return;
+
+    if (!document.getElementById('thibe-menu-state-style')) {
+      const style = document.createElement('style');
+      style.id = 'thibe-menu-state-style';
+      style.textContent = `
+        #menu-drawer .menu-drawer__navigation > .menu-drawer__menu > li > a.thibe-selected,
+        #menu-drawer .menu-drawer__navigation > .menu-drawer__menu > li > details > summary.thibe-selected {
+          background:#141014!important;color:#fff!important;border-color:#141014!important;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    const normalize = (value) => (value || '').trim().toLowerCase();
+    const keyFromHorizontal = (el) => normalize(el.textContent);
+    const keyFromDrawer = (el) => normalize(el.textContent);
+
+    const selectOne = (key, persist = true) => {
+      const wanted = normalize(key);
+      drawerTabs.forEach((tab) => tab.classList.toggle('thibe-selected', keyFromDrawer(tab) === wanted));
+      horizontal.forEach((link) => link.classList.toggle('is-active', keyFromHorizontal(link) === wanted));
+      if (persist && wanted) sessionStorage.setItem('thibeActiveMenu', wanted);
+    };
+
+    // Shopify/Liquid can mark several links active. Clear them first.
+    horizontal.forEach((link) => link.classList.remove('is-active'));
+
+    drawerTabs.forEach((tab) => {
+      tab.addEventListener('click', () => selectOne(keyFromDrawer(tab), true));
+    });
+
+    horizontal.forEach((link) => {
+      link.addEventListener('click', () => selectOne(keyFromHorizontal(link), true));
+    });
+
+    // On a real category URL, exact URL wins. Otherwise restore the user's last selection.
+    const currentPath = location.pathname.replace(/\/$/, '') || '/';
+    const exact = horizontal.find((link) => {
+      try {
+        const path = new URL(link.href, location.origin).pathname.replace(/\/$/, '') || '/';
+        return path === currentPath;
+      } catch (_) {
+        return false;
+      }
+    });
+
+    if (exact) {
+      selectOne(keyFromHorizontal(exact), false);
+    } else {
+      const stored = sessionStorage.getItem('thibeActiveMenu');
+      if (stored) selectOne(stored, false);
+    }
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initThibeMenuState, { once: true });
+  } else {
+    initThibeMenuState();
+  }
+})();
+</script>
