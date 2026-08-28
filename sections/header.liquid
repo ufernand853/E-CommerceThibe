@@ -67,9 +67,6 @@
     }
   }
 
-  /* =========================================================
-     THIBE / ARENAL - HEADER estilo mockup
-     ========================================================= */
   .header-wrapper {
     background: linear-gradient(90deg, #2b0a14 0%, #0c0709 70%) !important;
     color: #e9e8e6 !important;
@@ -202,10 +199,6 @@
     }
   }
 
-
-  /* =========================================================
-     THIBE - SUBNAVEGACIÓN
-     ========================================================= */
   .thibe-subnav {
     width: 100%;
     background: rgba(12, 7, 9, .98);
@@ -273,7 +266,7 @@
   }
 
   .section-header {
-    position: sticky; /* This is for fixing a Safari z-index issue. PR #2147 */
+    position: sticky;
     margin-bottom: {{ section.settings.margin_bottom | times: 0.75 | round: 0 }}px;
   }
 
@@ -328,19 +321,10 @@
     endif
   -%}
   <header class="header arenal-main-header header--mobile-center page-width drawer-menu{% if section.settings.menu != blank %} header--has-menu{% endif %}{% if has_app_block %} header--has-app{% endif %}{% if social_links %} header--has-social{% endif %}{% if shop.customer_accounts_enabled %} header--has-account{% endif %}{% if localization_forms %} header--has-localizations{% endif %}">
-
-    {%- comment -%}
-      Menú lateral nativo de Dawn.
-      Se utiliza tanto en desktop como en mobile.
-    {%- endcomment -%}
     {%- if section.settings.menu != blank -%}
       {% render 'header-drawer' %}
     {%- endif -%}
 
-    {%- comment -%}
-      Logo único. Se conserva exactamente la imagen compuesta configurada en
-      Configuración del tema > Logo (AI + ARENAL IMPORT + THIBE).
-    {%- endcomment -%}
     {%- if request.page_type == 'index' -%}
       <h1 class="header__heading">
     {%- endif -%}
@@ -352,18 +336,7 @@
           {%- assign logo_height = settings.logo_width | divided_by: settings.logo.aspect_ratio -%}
           {% capture sizes %}(max-width: 749px) 210px, 300px{% endcapture %}
           {% capture widths %}180, 210, 250, 300, 450, 600{% endcapture %}
-          {{
-            settings.logo
-            | image_url: width: 600
-            | image_tag:
-              class: 'header__heading-logo motion-reduce',
-              widths: widths,
-              height: logo_height,
-              width: settings.logo_width,
-              alt: logo_alt,
-              sizes: sizes,
-              preload: true
-          }}
+          {{ settings.logo | image_url: width: 600 | image_tag: class: 'header__heading-logo motion-reduce', widths: widths, height: logo_height, width: settings.logo_width, alt: logo_alt, sizes: sizes, preload: true }}
         </div>
       {%- else -%}
         <span class="h2">{{ shop.name }}</span>
@@ -400,11 +373,7 @@
       </div>
 
       {%- if shop.customer_accounts_enabled -%}
-        <a
-          href="{%- if customer -%}{{ routes.account_url }}{%- else -%}{{ routes.account_login_url }}{%- endif -%}"
-          class="header__icon header__icon--account link focus-inset"
-          rel="nofollow"
-        >
+        <a href="{%- if customer -%}{{ routes.account_url }}{%- else -%}{{ routes.account_login_url }}{%- endif -%}" class="header__icon header__icon--account link focus-inset" rel="nofollow">
           <span class="svg-wrapper">{{ 'icon-account.svg' | inline_asset_content }}</span>
           <span class="visually-hidden">
             {%- liquid
@@ -418,9 +387,6 @@
         </a>
       {%- endif -%}
 
-      {%- comment -%}
-        Búsqueda nativa de Dawn. Orden de iconos: perfil, buscar, carrito.
-      {%- endcomment -%}
       {% render 'header-search', input_id: 'Search-In-Modal' %}
 
       {%- for block in section.blocks -%}
@@ -453,10 +419,7 @@
     <nav class="thibe-subnav" aria-label="Navegación principal">
       <div class="thibe-subnav__inner">
         {%- for link in section.settings.menu.links -%}
-          <a
-            href="{{ link.url }}"
-            class="thibe-subnav__link{% if link.current %} is-active{% endif %}"
-          >
+          <a href="{{ link.url }}" class="thibe-subnav__link{% if link.active %} is-active{% endif %}">
             {{ link.title | escape }}
           </a>
         {%- endfor -%}
@@ -466,165 +429,78 @@
 </{{ header_tag }}>
 
 {%- if settings.cart_type == 'notification' -%}
-  {%- render 'cart-notification',
-    color_scheme: section.settings.color_scheme,
-    desktop_menu_type: section.settings.menu_type_desktop
-  -%}
+  {%- render 'cart-notification', color_scheme: section.settings.color_scheme, desktop_menu_type: section.settings.menu_type_desktop -%}
 {%- endif -%}
 
 {% javascript %}
-  class StickyHeader extends HTMLElement {
-    constructor() {
-      super();
-    }
+class StickyHeader extends HTMLElement {
+  constructor() {
+    super();
+  }
 
-    connectedCallback() {
-      this.header = document.querySelector('.section-header');
-      this.headerIsAlwaysSticky =
-        this.getAttribute('data-sticky-type') === 'always' ||
-        this.getAttribute('data-sticky-type') === 'reduce-logo-size';
-      this.headerBounds = {};
+  connectedCallback() {
+    this.header = document.querySelector('.section-header');
+    this.headerIsAlwaysSticky = this.getAttribute('data-sticky-type') === 'always' || this.getAttribute('data-sticky-type') === 'reduce-logo-size';
+    this.headerBounds = {};
+    this.setHeaderHeight();
+    window.matchMedia('(max-width: 990px)').addEventListener('change', this.setHeaderHeight.bind(this));
+    if (this.headerIsAlwaysSticky) this.header.classList.add('shopify-section-header-sticky');
+    this.currentScrollTop = 0;
+    this.preventReveal = false;
+    this.predictiveSearch = this.querySelector('predictive-search');
+    this.onScrollHandler = this.onScroll.bind(this);
+    this.hideHeaderOnScrollUp = () => (this.preventReveal = true);
+    this.addEventListener('preventHeaderReveal', this.hideHeaderOnScrollUp);
+    window.addEventListener('scroll', this.onScrollHandler, false);
+    this.createObserver();
+  }
 
-      this.setHeaderHeight();
+  setHeaderHeight() {
+    document.documentElement.style.setProperty('--header-height', `${this.header.offsetHeight}px`);
+  }
 
-      window.matchMedia('(max-width: 990px)').addEventListener('change', this.setHeaderHeight.bind(this));
+  disconnectedCallback() {
+    window.removeEventListener('scroll', this.onScrollHandler);
+  }
 
-      if (this.headerIsAlwaysSticky) {
-        this.header.classList.add('shopify-section-header-sticky');
-      }
+  createObserver() {
+    new IntersectionObserver((entries, observer) => {
+      this.headerBounds = entries[0].intersectionRect;
+      observer.disconnect();
+    }).observe(this.header);
+  }
 
-      this.currentScrollTop = 0;
-      this.preventReveal = false;
-      this.predictiveSearch = this.querySelector('predictive-search');
-
-      this.onScrollHandler = this.onScroll.bind(this);
-      this.hideHeaderOnScrollUp = () => (this.preventReveal = true);
-
-      this.addEventListener('preventHeaderReveal', this.hideHeaderOnScrollUp);
-      window.addEventListener('scroll', this.onScrollHandler, false);
-
-      this.createObserver();
-    }
-
-    setHeaderHeight() {
-      document.documentElement.style.setProperty('--header-height', `${this.header.offsetHeight}px`);
-    }
-
-    disconnectedCallback() {
-      this.removeEventListener('preventHeaderReveal', this.hideHeaderOnScrollUp);
-      window.removeEventListener('scroll', this.onScrollHandler);
-    }
-
-    createObserver() {
-      let observer = new IntersectionObserver((entries, observer) => {
-        this.headerBounds = entries[0].intersectionRect;
-        observer.disconnect();
-      });
-
-      observer.observe(this.header);
-    }
-
-    onScroll() {
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-
-      if (this.predictiveSearch && this.predictiveSearch.isOpen) return;
-
-      if (scrollTop > this.currentScrollTop && scrollTop > this.headerBounds.bottom) {
-        this.header.classList.add('scrolled-past-header');
-        if (this.preventHide) return;
+  onScroll() {
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    if (this.predictiveSearch && this.predictiveSearch.isOpen) return;
+    if (scrollTop > this.currentScrollTop && scrollTop > this.headerBounds.bottom) {
+      this.header.classList.add('scrolled-past-header');
+      if (this.preventHide) return;
+      requestAnimationFrame(this.hide.bind(this));
+    } else if (scrollTop < this.currentScrollTop && scrollTop > this.headerBounds.bottom) {
+      this.header.classList.add('scrolled-past-header');
+      if (!this.preventReveal) {
+        requestAnimationFrame(this.reveal.bind(this));
+      } else {
+        window.clearTimeout(this.isScrolling);
+        this.isScrolling = setTimeout(() => { this.preventReveal = false; }, 66);
         requestAnimationFrame(this.hide.bind(this));
-      } else if (scrollTop < this.currentScrollTop && scrollTop > this.headerBounds.bottom) {
-        this.header.classList.add('scrolled-past-header');
-        if (!this.preventReveal) {
-          requestAnimationFrame(this.reveal.bind(this));
-        } else {
-          window.clearTimeout(this.isScrolling);
-
-          this.isScrolling = setTimeout(() => {
-            this.preventReveal = false;
-          }, 66);
-
-          requestAnimationFrame(this.hide.bind(this));
-        }
-      } else if (scrollTop <= this.headerBounds.top) {
-        this.header.classList.remove('scrolled-past-header');
-        requestAnimationFrame(this.reset.bind(this));
       }
-
-      this.currentScrollTop = scrollTop;
+    } else if (scrollTop <= this.headerBounds.top) {
+      this.header.classList.remove('scrolled-past-header');
+      requestAnimationFrame(this.reset.bind(this));
     }
-
-    hide() {
-      if (this.headerIsAlwaysSticky) return;
-      this.header.classList.add('shopify-section-header-hidden', 'shopify-section-header-sticky');
-      this.closeMenuDisclosure();
-      this.closeSearchModal();
-    }
-
-    reveal() {
-      if (this.headerIsAlwaysSticky) return;
-      this.header.classList.add('shopify-section-header-sticky', 'animate');
-      this.header.classList.remove('shopify-section-header-hidden');
-    }
-
-    reset() {
-      if (this.headerIsAlwaysSticky) return;
-      this.header.classList.remove('shopify-section-header-hidden', 'shopify-section-header-sticky', 'animate');
-    }
-
-    closeMenuDisclosure() {
-      this.disclosures = this.disclosures || this.header.querySelectorAll('header-menu');
-      this.disclosures.forEach((disclosure) => disclosure.close());
-    }
-
-    closeSearchModal() {
-      this.searchModal = this.searchModal || this.header.querySelector('details-modal');
-      this.searchModal.close(false);
-    }
+    this.currentScrollTop = scrollTop;
   }
 
-  customElements.define('sticky-header', StickyHeader);
+  hide() { this.header.classList.add('shopify-section-header-hidden', 'shopify-section-header-sticky'); this.closeMenuDisclosure(); this.closeSearchModal(); }
+  reveal() { this.header.classList.add('shopify-section-header-sticky', 'animate'); this.header.classList.remove('shopify-section-header-hidden'); }
+  reset() { this.header.classList.remove('shopify-section-header-hidden', 'shopify-section-header-sticky', 'animate'); }
+  closeMenuDisclosure() { this.disclosures = this.disclosures || this.header.querySelectorAll('header-menu'); this.disclosures.forEach((disclosure) => disclosure.close()); }
+  closeSearchModal() { this.searchModal = this.searchModal || this.header.querySelector('details-modal'); this.searchModal.close(false); }
+}
+customElements.define('sticky-header', StickyHeader);
 {% endjavascript %}
-
-<script type="application/ld+json">
-  {
-    "@context": "http://schema.org",
-    "@type": "Organization",
-    "name": {{ shop.name | json }},
-    {% if settings.logo %}
-      "logo": {{ settings.logo | image_url: width: 500 | prepend: "https:" | json }},
-    {% endif %}
-    "sameAs": [
-      {{ settings.social_twitter_link | json }},
-      {{ settings.social_facebook_link | json }},
-      {{ settings.social_pinterest_link | json }},
-      {{ settings.social_instagram_link | json }},
-      {{ settings.social_tiktok_link | json }},
-      {{ settings.social_tumblr_link | json }},
-      {{ settings.social_snapchat_link | json }},
-      {{ settings.social_youtube_link | json }},
-      {{ settings.social_vimeo_link | json }}
-    ],
-    "url": {{ request.origin | append: page.url | json }}
-  }
-</script>
-
-{%- if request.page_type == 'index' -%}
-  {% assign potential_action_target = request.origin | append: routes.search_url | append: '?q={search_term_string}' %}
-  <script type="application/ld+json">
-    {
-      "@context": "http://schema.org",
-      "@type": "WebSite",
-      "name": {{ shop.name | json }},
-      "potentialAction": {
-        "@type": "SearchAction",
-        "target": {{ potential_action_target | json }},
-        "query-input": "required name=search_term_string"
-      },
-      "url": {{ request.origin | append: page.url | json }}
-    }
-  </script>
-{%- endif -%}
 
 {% schema %}
 {
@@ -632,187 +508,25 @@
   "class": "section-header",
   "max_blocks": 3,
   "settings": [
-    {
-      "type": "select",
-      "id": "logo_position",
-      "options": [
-        {
-          "value": "top-left",
-          "label": "t:sections.header.settings.logo_position.options__2.label"
-        },
-        {
-          "value": "top-center",
-          "label": "t:sections.header.settings.logo_position.options__3.label"
-        },
-        {
-          "value": "middle-left",
-          "label": "t:sections.header.settings.logo_position.options__1.label"
-        },
-        {
-          "value": "middle-center",
-          "label": "t:sections.header.settings.logo_position.options__4.label"
-        }
-      ],
-      "default": "middle-left",
-      "label": "t:sections.header.settings.logo_position.label",
-      "info": "t:sections.header.settings.logo_help.content"
-    },
-    {
-      "type": "select",
-      "id": "mobile_logo_position",
-      "options": [
-        {
-          "value": "center",
-          "label": "t:sections.header.settings.mobile_logo_position.options__1.label"
-        },
-        {
-          "value": "left",
-          "label": "t:sections.header.settings.mobile_logo_position.options__2.label"
-        }
-      ],
-      "default": "center",
-      "label": "t:sections.header.settings.mobile_logo_position.label"
-    },
-    {
-      "type": "link_list",
-      "id": "menu",
-      "default": "main-menu",
-      "label": "t:sections.header.settings.menu.label"
-    },
-    {
-      "type": "select",
-      "id": "menu_type_desktop",
-      "options": [
-        {
-          "value": "dropdown",
-          "label": "t:sections.header.settings.menu_type_desktop.options__1.label"
-        },
-        {
-          "value": "mega",
-          "label": "t:sections.header.settings.menu_type_desktop.options__2.label"
-        },
-        {
-          "value": "drawer",
-          "label": "t:sections.header.settings.menu_type_desktop.options__3.label"
-        }
-      ],
-      "default": "mega",
-      "label": "t:sections.header.settings.menu_type_desktop.label"
-    },
-    {
-      "type": "select",
-      "id": "sticky_header_type",
-      "options": [
-        {
-          "value": "none",
-          "label": "t:sections.header.settings.sticky_header_type.options__1.label"
-        },
-        {
-          "value": "on-scroll-up",
-          "label": "t:sections.header.settings.sticky_header_type.options__2.label"
-        },
-        {
-          "value": "always",
-          "label": "t:sections.header.settings.sticky_header_type.options__3.label"
-        },
-        {
-          "value": "reduce-logo-size",
-          "label": "t:sections.header.settings.sticky_header_type.options__4.label"
-        }
-      ],
-      "default": "on-scroll-up",
-      "label": "t:sections.header.settings.sticky_header_type.label"
-    },
-    {
-      "type": "checkbox",
-      "id": "show_line_separator",
-      "default": true,
-      "label": "t:sections.header.settings.show_line_separator.label"
-    },
-    {
-      "type": "header",
-      "content": "t:sections.header.settings.header__1.content"
-    },
-    {
-      "type": "color_scheme",
-      "id": "color_scheme",
-      "label": "t:sections.all.colors.label",
-      "default": "scheme-1"
-    },
-    {
-      "type": "color_scheme",
-      "id": "menu_color_scheme",
-      "label": "t:sections.header.settings.menu_color_scheme.label",
-      "default": "scheme-1"
-    },
-    {
-      "type": "header",
-      "content": "t:sections.header.settings.header__utilities.content"
-    },
-    {
-      "type": "checkbox",
-      "id": "enable_country_selector",
-      "default": true,
-      "label": "t:sections.header.settings.enable_country_selector.label",
-      "info": "t:sections.header.settings.enable_country_selector.info"
-    },
-    {
-      "type": "checkbox",
-      "id": "enable_language_selector",
-      "default": true,
-      "label": "t:sections.header.settings.enable_language_selector.label",
-      "info": "t:sections.header.settings.enable_language_selector.info"
-    },
-    {
-      "type": "checkbox",
-      "id": "enable_customer_avatar",
-      "default": true,
-      "label": "t:sections.header.settings.enable_customer_avatar.label",
-      "info": "t:sections.header.settings.enable_customer_avatar.info"
-    },
-    {
-      "type": "header",
-      "content": "t:sections.all.spacing"
-    },
-    {
-      "type": "range",
-      "id": "margin_bottom",
-      "min": 0,
-      "max": 100,
-      "step": 4,
-      "unit": "px",
-      "label": "t:sections.header.settings.margin_bottom.label",
-      "default": 0
-    },
-    {
-      "type": "header",
-      "content": "t:sections.all.padding.section_padding_heading"
-    },
-    {
-      "type": "range",
-      "id": "padding_top",
-      "min": 0,
-      "max": 36,
-      "step": 4,
-      "unit": "px",
-      "label": "t:sections.all.padding.padding_top",
-      "default": 20
-    },
-    {
-      "type": "range",
-      "id": "padding_bottom",
-      "min": 0,
-      "max": 36,
-      "step": 4,
-      "unit": "px",
-      "label": "t:sections.all.padding.padding_bottom",
-      "default": 20
-    }
+    {"type":"select","id":"logo_position","options":[{"value":"top-left","label":"t:sections.header.settings.logo_position.options__1.label"},{"value":"top-center","label":"t:sections.header.settings.logo_position.options__2.label"},{"value":"middle-left","label":"t:sections.header.settings.logo_position.options__3.label"},{"value":"middle-center","label":"t:sections.header.settings.logo_position.options__4.label"}],"default":"middle-left","label":"t:sections.header.settings.logo_position.label","info":"t:sections.header.settings.logo_help.content"},
+    {"type":"link_list","id":"menu","default":"main-menu","label":"t:sections.header.settings.menu.label"},
+    {"type":"select","id":"menu_type_desktop","options":[{"value":"dropdown","label":"t:sections.header.settings.menu_type_desktop.options__1.label"},{"value":"mega","label":"t:sections.header.settings.menu_type_desktop.options__2.label"},{"value":"drawer","label":"t:sections.header.settings.menu_type_desktop.options__3.label"}],"default":"dropdown","label":"t:sections.header.settings.menu_type_desktop.label"},
+    {"type":"select","id":"sticky_header_type","options":[{"value":"none","label":"t:sections.header.settings.sticky_header_type.options__1.label"},{"value":"on-scroll-up","label":"t:sections.header.settings.sticky_header_type.options__2.label"},{"value":"always","label":"t:sections.header.settings.sticky_header_type.options__3.label"},{"value":"reduce-logo-size","label":"t:sections.header.settings.sticky_header_type.options__4.label"}],"default":"on-scroll-up","label":"t:sections.header.settings.sticky_header_type.label"},
+    {"type":"checkbox","id":"show_line_separator","default":true,"label":"t:sections.header.settings.show_line_separator.label"},
+    {"type":"header","content":"t:sections.header.settings.header__1.content"},
+    {"type":"color_scheme","id":"color_scheme","label":"t:sections.all.colors.label","default":"scheme-1"},
+    {"type":"color_scheme","id":"menu_color_scheme","label":"t:sections.header.settings.menu_color_scheme.label","default":"scheme-1"},
+    {"type":"header","content":"t:sections.header.settings.header__utilities.content"},
+    {"type":"checkbox","id":"enable_country_selector","default":true,"label":"t:sections.header.settings.enable_country_selector.label","info":"t:sections.header.settings.enable_country_selector.country_help"},
+    {"type":"checkbox","id":"enable_language_selector","default":true,"label":"t:sections.header.settings.enable_language_selector.label","info":"t:sections.header.settings.enable_language_selector.language_help"},
+    {"type":"checkbox","id":"enable_customer_avatar","default":true,"label":"t:sections.header.settings.enable_customer_avatar.label"},
+    {"type":"header","content":"t:sections.header.settings.header__3.content"},
+    {"type":"range","id":"margin_bottom","min":0,"max":100,"step":4,"unit":"px","label":"t:sections.header.settings.margin_bottom.label","default":0},
+    {"type":"header","content":"t:sections.all.spacing"},
+    {"type":"range","id":"padding_top","min":0,"max":36,"step":4,"unit":"px","label":"t:sections.all.padding.padding_top","default":20},
+    {"type":"range","id":"padding_bottom","min":0,"max":36,"step":4,"unit":"px","label":"t:sections.all.spacing.padding_bottom","default":20}
   ],
-  "blocks": [
-    {
-      "type": "@app"
-    }
-  ]
+  "blocks":[{"type":"@app"}],
+  "presets":[]
 }
 {% endschema %}
