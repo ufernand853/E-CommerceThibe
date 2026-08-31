@@ -1,7 +1,7 @@
 {% comment %}
   THIBE drawer navigation.
-  Top-level categories behave as a single-selection group and are synchronized
-  with the horizontal navigation.
+  Top-level categories behave as tabs. The selected category is synchronized
+  with the horizontal navigation and reveals quick links below.
 {% endcomment %}
 
 <header-drawer data-breakpoint="{% if section.settings.menu_type_desktop == 'drawer' %}desktop{% else %}tablet{% endif %}">
@@ -19,116 +19,75 @@
     <div id="menu-drawer" class="gradient menu-drawer motion-reduce color-{{ section.settings.menu_color_scheme }}">
       <div class="menu-drawer__inner-container">
         <div class="menu-drawer__navigation-container">
-          <nav class="menu-drawer__navigation">
-            <ul class="menu-drawer__menu has-submenu list-menu" role="list">
+          <nav class="menu-drawer__navigation" aria-label="Menú principal">
+            <ul class="menu-drawer__menu thibe-drawer-tabs list-menu" role="list">
               {%- for link in section.settings.menu.links -%}
                 <li>
-                  {%- if link.links != blank -%}
-                    <details
-                      id="Details-menu-drawer-menu-item-{{ forloop.index }}"
-                      name="thibe-main-menu"
-                    >
-                      <summary
-                        id="HeaderDrawer-{{ link.handle }}"
-                        class="menu-drawer__menu-item list-menu__item link link--text focus-inset"
-                        data-thibe-menu-key="{{ link.handle }}"
-                      >
-                        {{ link.title | escape }}
-                        <span class="svg-wrapper">
-                          {{- 'icon-arrow.svg' | inline_asset_content -}}
-                        </span>
-                        <span class="svg-wrapper">
-                          {{- 'icon-caret.svg' | inline_asset_content -}}
-                        </span>
-                      </summary>
-
-                      <div
-                        id="link-{{ link.handle | escape }}"
-                        class="menu-drawer__submenu has-submenu gradient motion-reduce"
-                        tabindex="-1"
-                      >
-                        <div class="menu-drawer__inner-submenu">
-                          <button class="menu-drawer__close-button link link--text focus-inset" aria-expanded="true">
-                            <span class="svg-wrapper">
-                              {{- 'icon-arrow.svg' | inline_asset_content -}}
-                            </span>
-                            {{ link.title | escape }}
-                          </button>
-
-                          <ul class="menu-drawer__menu list-menu" role="list" tabindex="-1">
-                            {%- for childlink in link.links -%}
-                              <li>
-                                {%- if childlink.links == blank -%}
-                                  <a
-                                    id="HeaderDrawer-{{ link.handle }}-{{ childlink.handle }}"
-                                    href="{{ childlink.url }}"
-                                    class="menu-drawer__menu-item link link--text list-menu__item focus-inset{% if childlink.current %} menu-drawer__menu-item--active{% endif %}"
-                                    {% if childlink.current %}aria-current="page"{% endif %}
-                                  >
-                                    {{ childlink.title | escape }}
-                                  </a>
-                                {%- else -%}
-                                  <details id="Details-menu-drawer-{{ link.handle }}-{{ childlink.handle }}">
-                                    <summary
-                                      id="HeaderDrawer-{{ link.handle }}-{{ childlink.handle }}"
-                                      class="menu-drawer__menu-item link link--text list-menu__item focus-inset"
-                                    >
-                                      {{ childlink.title | escape }}
-                                      <span class="svg-wrapper">
-                                        {{- 'icon-arrow.svg' | inline_asset_content -}}
-                                      </span>
-                                      <span class="svg-wrapper">
-                                        {{- 'icon-caret.svg' | inline_asset_content -}}
-                                      </span>
-                                    </summary>
-
-                                    <div
-                                      id="childlink-{{ childlink.handle | escape }}"
-                                      class="menu-drawer__submenu has-submenu gradient motion-reduce"
-                                    >
-                                      <button class="menu-drawer__close-button link link--text focus-inset" aria-expanded="true">
-                                        <span class="svg-wrapper">
-                                          {{- 'icon-arrow.svg' | inline_asset_content -}}
-                                        </span>
-                                        {{ childlink.title | escape }}
-                                      </button>
-
-                                      <ul class="menu-drawer__menu list-menu" role="list" tabindex="-1">
-                                        {%- for grandchildlink in childlink.links -%}
-                                          <li>
-                                            <a
-                                              id="HeaderDrawer-{{ link.handle }}-{{ childlink.handle }}-{{ grandchildlink.handle }}"
-                                              href="{{ grandchildlink.url }}"
-                                              class="menu-drawer__menu-item link link--text list-menu__item focus-inset{% if grandchildlink.current %} menu-drawer__menu-item--active{% endif %}"
-                                              {% if grandchildlink.current %}aria-current="page"{% endif %}
-                                            >
-                                              {{ grandchildlink.title | escape }}
-                                            </a>
-                                          </li>
-                                        {%- endfor -%}
-                                      </ul>
-                                    </div>
-                                  </details>
-                                {%- endif -%}
-                              </li>
-                            {%- endfor -%}
-                          </ul>
-                        </div>
-                      </div>
-                    </details>
-                  {%- else -%}
-                    <a
-                      id="HeaderDrawer-{{ link.handle }}"
-                      href="{{ link.url }}"
-                      class="menu-drawer__menu-item list-menu__item link link--text focus-inset"
-                      data-thibe-menu-key="{{ link.handle }}"
-                    >
-                      {{ link.title | escape }}
-                    </a>
-                  {%- endif -%}
+                  <button
+                    type="button"
+                    id="HeaderDrawer-{{ link.handle }}"
+                    class="menu-drawer__menu-item list-menu__item link link--text focus-inset thibe-drawer-tab"
+                    data-thibe-menu-key="{{ link.handle }}"
+                    aria-controls="ThibeDrawerPanel-{{ link.handle }}"
+                    aria-selected="false"
+                  >
+                    {{ link.title | escape }}
+                  </button>
                 </li>
               {%- endfor -%}
             </ul>
+
+            <div class="thibe-drawer-panels">
+              {%- for link in section.settings.menu.links -%}
+                <section
+                  id="ThibeDrawerPanel-{{ link.handle }}"
+                  class="thibe-drawer-panel"
+                  data-thibe-panel-key="{{ link.handle }}"
+                  hidden
+                >
+                  <div class="thibe-drawer-primary-links">
+                    {%- if link.links != blank -%}
+                      {%- assign first_child = link.links.first -%}
+                      <a href="{{ first_child.url }}" class="thibe-drawer-primary-link">
+                        {{ first_child.title | escape }}
+                      </a>
+                    {%- endif -%}
+                    <a href="{{ link.url }}" class="thibe-drawer-primary-link">Ver todo</a>
+                  </div>
+
+                  {%- if link.links.size > 1 -%}
+                    <div class="thibe-drawer-popular-heading">
+                      <span>Los más buscados</span>
+                      <small>{{ link.links.size | minus: 1 }}</small>
+                    </div>
+
+                    <div class="thibe-drawer-popular-grid">
+                      {%- for childlink in link.links offset: 1 limit: 6 -%}
+                        {%- assign child_image = blank -%}
+                        {%- if childlink.object != blank -%}
+                          {%- if childlink.object.featured_image != blank -%}
+                            {%- assign child_image = childlink.object.featured_image -%}
+                          {%- elsif childlink.object.image != blank -%}
+                            {%- assign child_image = childlink.object.image -%}
+                          {%- endif -%}
+                        {%- endif -%}
+
+                        <a href="{{ childlink.url }}" class="thibe-drawer-chip">
+                          <span class="thibe-drawer-chip__media" aria-hidden="true">
+                            {%- if child_image != blank -%}
+                              {{ child_image | image_url: width: 80, height: 80, crop: 'center' | image_tag: loading: 'lazy', widths: '40,60,80', alt: '' }}
+                            {%- else -%}
+                              <span class="thibe-drawer-chip__initial">{{ childlink.title | slice: 0 }}</span>
+                            {%- endif -%}
+                          </span>
+                          <span class="thibe-drawer-chip__label">{{ childlink.title | escape }}</span>
+                        </a>
+                      {%- endfor -%}
+                    </div>
+                  {%- endif -%}
+                </section>
+              {%- endfor -%}
+            </div>
           </nav>
         </div>
       </div>
@@ -142,34 +101,37 @@
     const drawer = document.querySelector('#menu-drawer');
     if (!drawer) return;
 
-    const drawerTabs = [...drawer.querySelectorAll('.menu-drawer__navigation > .menu-drawer__menu > li > a[data-thibe-menu-key], .menu-drawer__navigation > .menu-drawer__menu > li > details > summary[data-thibe-menu-key]')];
+    const drawerTabs = [...drawer.querySelectorAll('.thibe-drawer-tab[data-thibe-menu-key]')];
+    const panels = [...drawer.querySelectorAll('.thibe-drawer-panel[data-thibe-panel-key]')];
     const horizontal = [...document.querySelectorAll('.thibe-subnav__link')];
-    if (!drawerTabs.length || !horizontal.length) return;
-
-    if (!document.getElementById('thibe-menu-state-style')) {
-      const style = document.createElement('style');
-      style.id = 'thibe-menu-state-style';
-      style.textContent = `
-        #menu-drawer .menu-drawer__navigation > .menu-drawer__menu > li > a.thibe-selected,
-        #menu-drawer .menu-drawer__navigation > .menu-drawer__menu > li > details > summary.thibe-selected {
-          background:#141014!important;color:#fff!important;border-color:#141014!important;
-        }
-      `;
-      document.head.appendChild(style);
-    }
+    if (!drawerTabs.length) return;
 
     const normalize = (value) => (value || '').trim().toLowerCase();
     const keyFromHorizontal = (el) => normalize(el.textContent);
-    const keyFromDrawer = (el) => normalize(el.textContent);
+    const keyFromDrawer = (el) => normalize(el.dataset.thibeMenuKey || el.textContent);
 
     const selectOne = (key, persist = true) => {
       const wanted = normalize(key);
-      drawerTabs.forEach((tab) => tab.classList.toggle('thibe-selected', keyFromDrawer(tab) === wanted));
-      horizontal.forEach((link) => link.classList.toggle('is-active', keyFromHorizontal(link) === wanted));
+
+      drawerTabs.forEach((tab) => {
+        const active = keyFromDrawer(tab) === wanted;
+        tab.classList.toggle('thibe-selected', active);
+        tab.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+
+      panels.forEach((panel) => {
+        const active = normalize(panel.dataset.thibePanelKey) === wanted;
+        panel.hidden = !active;
+        panel.classList.toggle('is-active', active);
+      });
+
+      horizontal.forEach((link) => {
+        link.classList.toggle('is-active', keyFromHorizontal(link) === wanted);
+      });
+
       if (persist && wanted) sessionStorage.setItem('thibeActiveMenu', wanted);
     };
 
-    // Shopify/Liquid can mark several links active. Clear them first.
     horizontal.forEach((link) => link.classList.remove('is-active'));
 
     drawerTabs.forEach((tab) => {
@@ -180,7 +142,6 @@
       link.addEventListener('click', () => selectOne(keyFromHorizontal(link), true));
     });
 
-    // On a real category URL, exact URL wins. Otherwise restore the user's last selection.
     const currentPath = location.pathname.replace(/\/$/, '') || '/';
     const exact = horizontal.find((link) => {
       try {
@@ -193,10 +154,17 @@
 
     if (exact) {
       selectOne(keyFromHorizontal(exact), false);
-    } else {
-      const stored = sessionStorage.getItem('thibeActiveMenu');
-      if (stored) selectOne(stored, false);
+      return;
     }
+
+    const stored = sessionStorage.getItem('thibeActiveMenu');
+    const storedTab = stored && drawerTabs.find((tab) => keyFromDrawer(tab) === normalize(stored));
+    if (storedTab) {
+      selectOne(stored, false);
+      return;
+    }
+
+    selectOne(keyFromDrawer(drawerTabs[0]), false);
   };
 
   if (document.readyState === 'loading') {
