@@ -54,6 +54,11 @@
   .thibe-plp .price{font-size:14px;font-weight:700}
   .thibe-plp .badge{font-size:10px;letter-spacing:.06em;text-transform:uppercase;border-radius:2px;background:#fff;color:#141014;border:0;padding:5px 9px}
   .thibe-plp .card__inner:after{content:'♡';position:absolute;right:12px;top:10px;z-index:3;width:26px;height:26px;display:grid;place-items:center;font-size:22px;color:#141014;background:rgba(255,255,255,.86);border-radius:50%;pointer-events:none}
+
+  .thibe-card-spec{display:block;margin:0 0 5px;color:#5f5a5d;font-size:11px;font-weight:500;line-height:1.25;letter-spacing:.025em;text-transform:uppercase}
+  .thibe-card-spec[hidden]{display:none!important}
+  .thibe-card-spec__separator{margin:0 4px;color:#8f898c}
+
   .thibe-plp__empty{text-align:center;padding:52px 0}
   .thibe-plp__pagination{padding:32px 0 56px}
 
@@ -76,6 +81,7 @@
     .thibe-plp #product-grid{column-gap:10px;row-gap:22px}
     .thibe-plp .card__information{padding-top:9px}
     .thibe-plp .card__heading,.thibe-plp .price{font-size:13px}
+    .thibe-card-spec{font-size:10px;margin-bottom:4px}
   }
 </style>
 
@@ -126,8 +132,47 @@
         <ul id="product-grid" data-id="{{ section.id }}" class="grid product-grid grid--2-col-tablet-down grid--4-col-desktop">
           {% assign skip_card_product_styles = false %}
           {% for product in collection.products %}
+            {%- liquid
+              assign thibe_category = product.type
+              for tag in product.tags
+                assign tag_downcase = tag | downcase
+                if tag_downcase == 'hombre' or tag_downcase == 'mujer' or tag_downcase == 'niño' or tag_downcase == 'nino' or tag_downcase == 'niña' or tag_downcase == 'nina'
+                  assign thibe_category = tag
+                  break
+                endif
+              endfor
+
+              assign thibe_size_option = blank
+              for option in product.options_with_values
+                assign option_name = option.name | downcase
+                if option_name contains 'talle' or option_name contains 'talla' or option_name contains 'size'
+                  assign thibe_size_option = option
+                  break
+                endif
+              endfor
+            -%}
             <li class="grid__item">
               {% render 'card-product', card_product: product, media_aspect_ratio: 'portrait', image_shape: 'default', show_secondary_image: section.settings.show_secondary_image, show_vendor: false, show_rating: false, lazy_load: true, skip_styles: skip_card_product_styles, quick_add: 'none', section_id: section.id %}
+
+              <div class="thibe-card-spec-source" hidden>
+                <span class="thibe-card-spec">
+                  {%- if thibe_category != blank -%}
+                    <span>{{ thibe_category | escape }}</span>
+                  {%- endif -%}
+                  {%- if thibe_size_option != blank and thibe_size_option.values.size > 0 -%}
+                    {%- if thibe_category != blank -%}<span class="thibe-card-spec__separator">·</span>{%- endif -%}
+                    <span>
+                      {%- if thibe_size_option.values.size > 2 -%}
+                        {{ thibe_size_option.values.first | escape }}–{{ thibe_size_option.values.last | escape }}
+                      {%- else -%}
+                        {%- for size_value in thibe_size_option.values -%}
+                          {{ size_value | escape }}{% unless forloop.last %} / {% endunless %}
+                        {%- endfor -%}
+                      {%- endif -%}
+                    </span>
+                  {%- endif -%}
+                </span>
+              </div>
             </li>
             {% assign skip_card_product_styles = true %}
           {% endfor %}
@@ -137,6 +182,32 @@
     </div>
   {% endpaginate %}
 </section>
+
+<script>
+(() => {
+  const placeThibeCardSpecs = (root = document) => {
+    root.querySelectorAll('.thibe-plp #product-grid > .grid__item').forEach((item) => {
+      const source = item.querySelector('.thibe-card-spec-source .thibe-card-spec');
+      const infos = item.querySelectorAll('.card__information');
+      const info = infos.length ? infos[infos.length - 1] : null;
+      if (!source || !info || info.querySelector(':scope > .thibe-card-spec')) return;
+      if (!source.textContent.trim()) return;
+      const spec = source.cloneNode(true);
+      spec.removeAttribute('hidden');
+      const heading = info.querySelector('.card__heading');
+      if (heading) info.insertBefore(spec, heading);
+      else info.prepend(spec);
+    });
+  };
+
+  placeThibeCardSpecs();
+
+  const observer = new MutationObserver((mutations) => {
+    if (mutations.some((mutation) => mutation.addedNodes.length)) placeThibeCardSpecs();
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+})();
+</script>
 
 {% schema %}
 {
