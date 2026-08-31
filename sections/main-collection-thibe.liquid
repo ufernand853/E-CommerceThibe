@@ -10,14 +10,21 @@
   .thibe-plp__crumb{font-size:12px;color:#5b565a;margin-bottom:8px}
   .thibe-plp__crumb a{color:#5b565a}
   .thibe-plp__title{margin:0;font-size:31px;font-weight:600;line-height:1.1;letter-spacing:-.01em}
-  .thibe-subcats{display:flex;gap:14px;overflow-x:auto;padding:0 0 24px;scrollbar-width:none}
-  .thibe-subcats::-webkit-scrollbar{display:none}
-  .thibe-subcat{flex:0 0 132px;color:#4a4448;text-decoration:none}
-  .thibe-subcat__media{aspect-ratio:3/4;overflow:hidden;border:1px solid transparent;background:#f1efed}
-  .thibe-subcat__media img{width:100%;height:100%;object-fit:cover}
-  .thibe-subcat__name{text-align:center;font-size:12px;margin-top:8px}
-  .thibe-subcat:hover .thibe-subcat__media,.thibe-subcat.is-active .thibe-subcat__media{border-color:#141014}
-  .thibe-subcat:hover .thibe-subcat__name,.thibe-subcat.is-active .thibe-subcat__name{color:#141014;font-weight:600}
+
+  .thibe-subcats-wrap{position:relative;margin:0 -4px 22px;padding:0 4px 8px}
+  .thibe-subcats{display:flex;align-items:flex-start;gap:16px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;padding:0 0 10px;scrollbar-width:thin;scrollbar-color:#8e8a87 #f1efed}
+  .thibe-subcats::-webkit-scrollbar{height:5px}
+  .thibe-subcats::-webkit-scrollbar-track{background:#f1efed}
+  .thibe-subcats::-webkit-scrollbar-thumb{background:#8e8a87;border-radius:999px}
+  .thibe-subcat{flex:0 0 140px;scroll-snap-align:start;color:#3f3a3d;text-decoration:none;display:block}
+  .thibe-subcat__media{width:100%;aspect-ratio:140/194;overflow:hidden;border:1px solid transparent;background:#c9c4bf;transition:border-color .18s ease,transform .18s ease}
+  .thibe-subcat__media img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .22s ease}
+  .thibe-subcat__name{text-align:center;font-size:12px;line-height:1.25;margin-top:9px;min-height:30px;color:#3f3a3d}
+  .thibe-subcat:hover .thibe-subcat__media{border-color:#141014}
+  .thibe-subcat:hover .thibe-subcat__media img{transform:scale(1.018)}
+  .thibe-subcat:hover .thibe-subcat__name{color:#141014}
+  .thibe-subcat.is-active .thibe-subcat__media{border:2px solid #141014}
+  .thibe-subcat.is-active .thibe-subcat__name{color:#141014;font-weight:700}
 
   .thibe-toolbar{border-top:1px solid #e5e2df;border-bottom:1px solid #e5e2df;padding:12px 0;margin-bottom:20px}
   .thibe-toolbar__inner{display:flex;align-items:center;justify-content:space-between;gap:24px;font-size:13px;min-height:44px}
@@ -70,13 +77,17 @@
     .thibe-toolbar__inner{align-items:flex-start;flex-direction:column;gap:10px;min-height:0}
     .thibe-toolbar #main-collection-filters{margin-left:0;width:100%;overflow-x:auto}
     .thibe-toolbar .facets__form{justify-content:flex-start!important;min-width:max-content}
+    .thibe-subcat{flex-basis:128px}
   }
 
   @media(max-width:749px){
     .thibe-plp__wrap{padding:0 16px}
     .thibe-plp__head{padding:18px 0 14px}
     .thibe-plp__title{font-size:26px}
-    .thibe-subcat{flex-basis:108px}
+    .thibe-subcats-wrap{margin-right:-16px}
+    .thibe-subcats{gap:10px;padding-right:16px}
+    .thibe-subcat{flex-basis:112px}
+    .thibe-subcat__name{font-size:11px;margin-top:7px;min-height:28px}
     .thibe-toolbar{padding:10px 0;margin-bottom:16px}
     .thibe-plp #product-grid{column-gap:10px;row-gap:22px}
     .thibe-plp .card__information{padding-top:9px}
@@ -93,22 +104,24 @@
     </div>
 
     {% if section.blocks.size > 0 %}
-      <div class="thibe-subcats" aria-label="Subcategorías">
-        {% for block in section.blocks %}
-          {% assign subcollection = block.settings.collection %}
-          {% if subcollection != blank %}
-            <a class="thibe-subcat{% if subcollection.handle == collection.handle %} is-active{% endif %}" href="{{ subcollection.url }}" {{ block.shopify_attributes }}>
-              <div class="thibe-subcat__media">
-                {% if block.settings.image != blank %}
-                  {{ block.settings.image | image_url: width: 420 | image_tag: loading: 'lazy', widths: '180,280,420', alt: block.settings.title }}
-                {% elsif subcollection.featured_image != blank %}
-                  {{ subcollection.featured_image | image_url: width: 420 | image_tag: loading: 'lazy', widths: '180,280,420', alt: subcollection.title }}
-                {% endif %}
-              </div>
-              <div class="thibe-subcat__name">{{ block.settings.title | default: subcollection.title }}</div>
-            </a>
-          {% endif %}
-        {% endfor %}
+      <div class="thibe-subcats-wrap">
+        <div class="thibe-subcats" aria-label="Subcategorías">
+          {% for block in section.blocks %}
+            {% assign subcollection = block.settings.collection %}
+            {% if subcollection != blank %}
+              <a class="thibe-subcat{% if subcollection.handle == collection.handle %} is-active{% endif %}" href="{{ subcollection.url }}" {{ block.shopify_attributes }}>
+                <div class="thibe-subcat__media">
+                  {% if block.settings.image != blank %}
+                    {{ block.settings.image | image_url: width: 420 | image_tag: loading: 'lazy', widths: '180,280,420', alt: block.settings.title }}
+                  {% elsif subcollection.featured_image != blank %}
+                    {{ subcollection.featured_image | image_url: width: 420 | image_tag: loading: 'lazy', widths: '180,280,420', alt: subcollection.title }}
+                  {% endif %}
+                </div>
+                <div class="thibe-subcat__name">{{ block.settings.title | default: subcollection.title }}</div>
+              </a>
+            {% endif %}
+          {% endfor %}
+        </div>
       </div>
     {% endif %}
   </div>
