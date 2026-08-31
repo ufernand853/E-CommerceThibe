@@ -99,6 +99,7 @@
 (() => {
   const initThibeMenuState = () => {
     const drawer = document.querySelector('#menu-drawer');
+    const drawerContainer = document.querySelector('#Details-menu-drawer-container');
     if (!drawer) return;
 
     const drawerTabs = [...drawer.querySelectorAll('.thibe-drawer-tab[data-thibe-menu-key]')];
@@ -106,7 +107,12 @@
     const horizontal = [...document.querySelectorAll('.thibe-subnav__link')];
     if (!drawerTabs.length) return;
 
-    const normalize = (value) => (value || '').trim().toLowerCase();
+    const normalize = (value) => (value || '')
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+
     const keyFromHorizontal = (el) => normalize(el.textContent);
     const keyFromDrawer = (el) => normalize(el.dataset.thibeMenuKey || el.textContent);
 
@@ -129,7 +135,7 @@
         link.classList.toggle('is-active', keyFromHorizontal(link) === wanted);
       });
 
-      if (persist && wanted) sessionStorage.setItem('thibeActiveMenu', wanted);
+      if (persist && wanted) sessionStorage.setItem('thibeDrawerSelection', wanted);
     };
 
     horizontal.forEach((link) => link.classList.remove('is-active'));
@@ -139,7 +145,11 @@
     });
 
     horizontal.forEach((link) => {
-      link.addEventListener('click', () => selectOne(keyFromHorizontal(link), true));
+      link.addEventListener('click', () => {
+        const key = keyFromHorizontal(link);
+        sessionStorage.setItem('thibeDrawerSelection', key);
+        selectOne(key, false);
+      });
     });
 
     const currentPath = location.pathname.replace(/\/$/, '') || '/';
@@ -152,19 +162,25 @@
       }
     });
 
-    if (exact) {
-      selectOne(keyFromHorizontal(exact), false);
-      return;
-    }
-
-    const stored = sessionStorage.getItem('thibeActiveMenu');
+    const stored = sessionStorage.getItem('thibeDrawerSelection');
     const storedTab = stored && drawerTabs.find((tab) => keyFromDrawer(tab) === normalize(stored));
+
     if (storedTab) {
       selectOne(stored, false);
-      return;
+    } else if (exact) {
+      selectOne(keyFromHorizontal(exact), false);
+    } else {
+      selectOne(keyFromDrawer(drawerTabs[0]), false);
     }
 
-    selectOne(keyFromDrawer(drawerTabs[0]), false);
+    if (drawerContainer) {
+      drawerContainer.addEventListener('toggle', () => {
+        if (!drawerContainer.open) return;
+        const remembered = sessionStorage.getItem('thibeDrawerSelection');
+        const rememberedTab = remembered && drawerTabs.find((tab) => keyFromDrawer(tab) === normalize(remembered));
+        if (rememberedTab) selectOne(remembered, false);
+      });
+    }
   };
 
   if (document.readyState === 'loading') {
