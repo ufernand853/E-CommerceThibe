@@ -412,3 +412,117 @@ cart-drawer-items::-webkit-scrollbar-track-piece {
     margin-left: 0;
   }
 }
+
+/* THIBE dark cart drawer */
+.cart-drawer .drawer__inner,
+.cart-drawer .drawer__inner-empty {
+  background: linear-gradient(145deg,#26000f 0%,#0a0709 52%,#040506 100%) !important;
+  color:#fff !important;
+  border-color:rgba(255,255,255,.12) !important;
+}
+
+.cart-drawer .drawer__heading,
+.cart-drawer .cart-item__name,
+.cart-drawer .cart-item__name:hover,
+.cart-drawer .cart-item__price-wrapper,
+.cart-drawer .cart-item__final-price,
+.cart-drawer .cart-item__old-price,
+.cart-drawer .totals__total,
+.cart-drawer .totals__total-value,
+.cart-drawer .price,
+.cart-drawer .product-option,
+.cart-drawer .product-option dt,
+.cart-drawer .product-option dd,
+.cart-drawer .discounts__discount,
+.cart-drawer .cart__login-title,
+.cart-drawer .cart__login-paragraph,
+.cart-drawer .cart-drawer__empty-content,
+.cart-drawer .drawer__footer summary {
+  color:#fff !important;
+}
+
+.cart-drawer .cart-items th,
+.cart-drawer .caption-with-letter-spacing,
+.cart-drawer .tax-note,
+.cart-drawer .tax-note a,
+.cart-drawer .cart-item__details > .product-option,
+.cart-drawer .unit-price,
+.cart-drawer .cart-item__error-text {
+  color:rgba(255,255,255,.68) !important;
+}
+
+.cart-drawer .drawer__header,
+.cart-drawer .drawer__footer,
+.cart-drawer .cart-items th {
+  border-color:rgba(255,255,255,.13) !important;
+}
+
+.cart-drawer .drawer__close,
+.cart-drawer cart-remove-button .button,
+.cart-drawer .icon-remove,
+.cart-drawer .svg-wrapper {
+  color:#fff !important;
+}
+
+.cart-drawer .drawer__close svg,
+.cart-drawer cart-remove-button svg {
+  stroke:currentColor;
+}
+
+.cart-drawer .quantity {
+  background:#fff !important;
+  color:#171316 !important;
+  border:1px solid rgba(255,255,255,.18) !important;
+}
+
+.cart-drawer .quantity:before,
+.cart-drawer .quantity:after {
+  box-shadow:none !important;
+}
+
+.cart-drawer .quantity__button,
+.cart-drawer .quantity__input {
+  color:#171316 !important;
+}
+
+.cart-drawer .quantity__button svg {
+  color:#171316 !important;
+}
+
+.cart-drawer .cart__checkout-button {
+  background:#fff !important;
+  color:#100c0e !important;
+  border:1px solid #fff !important;
+  font-weight:700 !important;
+  letter-spacing:.035em;
+}
+
+.cart-drawer .cart__checkout-button:after,
+.cart-drawer .cart__checkout-button:before {
+  box-shadow:none !important;
+}
+
+.cart-drawer .cart__checkout-button:hover {
+  background:#ece9e7 !important;
+  color:#100c0e !important;
+}
+
+.cart-drawer .cart-item__image {
+  background:#fff;
+}
+
+.cart-drawer .cart-drawer__footer .totals {
+  padding-top:4px;
+}
+
+.cart-drawer .cart-drawer__footer .totals__total {
+  font-weight:600;
+}
+
+.cart-drawer .cart-drawer__footer .totals__total-value {
+  font-weight:700;
+}
+
+.cart-drawer .cart-drawer__overlay {
+  background:rgba(0,0,0,.54);
+}
